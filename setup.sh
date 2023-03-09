@@ -1,33 +1,38 @@
 #!/bin/bash
 
-### PACKAGES ###
+### CHEZMOI ###
 
-sudo apt-get update -y
+# Install required packages using package manager
+if command -v apt &> /dev/null; then
+    sudo apt update && sudo apt install -y curl sudo git
+elif command -v dnf &> /dev/null; then
+    sudo dnf update && sudo dnf install -y curl sudo git
+elif command -v pacman &> /dev/null; then
+    sudo pacman -Syu --noconfirm && sudo pacman -S --noconfirm curl sudo git
+elif command -v apk &> /dev/null; then
+    sudo apk update && sudo apk add curl sudo git
+elif command -v yum &> /dev/null; then
+    sudo yum update && sudo yum install -y curl sudo git
+else
+    echo "Error: no supported package manager found"
+    exit 1
+fi
 
-packages = (
-    neovim
-    git
-    ripgrep
-    exa
-    bat
-    unzip
-)
-for package in "${packages[@]}"
-do
-  sudo apt install "$extension" -y
-done
+# Install chezmoi in /usr/bin
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/bin
+
+# Install dotfiles
+chezmoi init --apply https://github.com/ShawnHeyli/dotfiles.git --branch proxmox
 
 ### VSCODE ###
 
 extensions = (
 	catppuccin.catppuccin-vsc
-	vscjava.vscode-java-pack
 	github.copilot
 	eamodio.gitlens
 	pkief.material-icon-theme
 	pkief.material-product-icons
 	esbenp.prettier-vscode
-	sonarsource.sonarlint-vscode
 )
 
 for extension in "${extensions[@]}"
@@ -55,11 +60,3 @@ for key in "${!vscode_settings[@]}"; do
         echo "\"$key\": \"$value\"," >> "$settings_file"
     fi
 done
-
-### ZSH ###
-# Oh-my-zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended
-cp .zshrc ~/.zshrc
-
-### FONTS
-cp -r fonts/* /usr/local/share/fonts
