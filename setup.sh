@@ -18,8 +18,32 @@ else
     exit 1
 fi
 
-# Install chezmoi in /usr/bin
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/bin
+# Install chezmoi in ~/.bin
+mkdir ~/.bin
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.bin
+echo 'export PATH=$PATH://home/coder'  >> ~/.bash_profile
+
+# Add ~/.bin directory to PATH
+if [ -f "$HOME/.bashrc" ]; then
+    echo 'export PATH="$HOME/.bin:$PATH"' >> $HOME/.bashrc
+    source $HOME/.bashrc
+fi
+
+if [ -f "$HOME/.zshrc" ]; then
+    echo 'export PATH="$HOME/.bin:$PATH"' >> $HOME/.zshrc
+    source $HOME/.zshrc
+fi
+
+if [ -f "$HOME/.config/fish/config.fish" ]; then
+    echo 'set PATH $HOME/.bin $PATH' >> $HOME/.config/fish/config.fish
+    source $HOME/.config/fish/config.fish
+fi
+
+if [ -f "$HOME/.profile" ]; then
+    echo 'export PATH="$HOME/.bin:$PATH"' >> $HOME/.profile
+    source $HOME/.profile
+fi
+
 
 # Install dotfiles
 chezmoi init --apply https://github.com/ShawnHeyli/dotfiles.git --branch coder
